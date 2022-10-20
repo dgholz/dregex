@@ -12,5 +12,9 @@ Gem::Specification.new do |s|
   s.files        = Dir["{lib}/**/*.rb"]
   s.require_path = "lib"
 
+  s.add_development_dependency "rake", "~> 12.0"
+  s.add_development_dependency "minitest", ">= 5.8"
+  s.add_development_dependency "minitest-reporters", ">= 1.1"
+
   s.license       = "MIT"
 end
