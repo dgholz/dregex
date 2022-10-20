@@ -1,0 +1,14 @@
+#!/usr/bin/env ruby
+
+require "dregex"
+
+pattern = ARGV.shift
+matcher = Dregex::compile pattern
+
+ARGF.each_line do |line|
+  if matcher.match(line.chomp)
+    puts "Match"
+  else
+    puts "No match"
+  end
+end
