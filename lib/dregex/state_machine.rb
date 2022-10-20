@@ -10,6 +10,20 @@ module Dregex
       other.class == self.class && other.state == state
     end
 
+    def match(string)
+      current = state
+      string.each_char do |char|
+        if current.has_key? char
+          current = current[char]
+        elsif current.has_key? :any
+          current = current[:any]
+        else
+          return false
+        end
+      end
+      current[:end] == true
+    end
+
     class Builder
       attr_reader :state_machine, :state
       attr_accessor :stay_on_current_state
