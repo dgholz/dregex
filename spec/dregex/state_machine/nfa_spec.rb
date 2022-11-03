@@ -36,6 +36,9 @@ describe Dregex::StateMachine::NFA do
     first_state["c"] = third
     second_state["c"] = third
 
+    nfa.start_state = first
+    nfa.end_state = third
+
     state0 = {}
     state1 = {}
     state2 = {}
@@ -43,11 +46,8 @@ describe Dregex::StateMachine::NFA do
     state1["b"] = state0
     state0["c"] = state2
     state1["c"] = state2
+    state2[:end] = true
 
-    expect(nfa.convert_to_state_machine).must_equal({
-      first => state0,
-      second => state1,
-      third => state2,
-    })
+    expect(nfa.to_state_machine).must_equal state0
   end
 end

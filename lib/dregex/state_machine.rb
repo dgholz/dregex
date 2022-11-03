@@ -32,8 +32,7 @@ module Dregex
     class Builder
       extend Forwardable
 
-      attr_reader :dispatcher, :nfa, :state
-      attr_accessor :stay_on_current_state
+      attr_reader :current_state_name, :dispatcher, :nfa
       def_delegators :nfa, :states
 
       def initialize(dispatcher: nil, nfa: NFA.new)
@@ -42,60 +41,53 @@ module Dregex
         end
         @nfa = nfa
         @dispatcher = dispatcher
-        @state = nfa.create_state(:start)
-        @stay_on_current_state = false
+        @current_state_name = nfa.create_state
+        nfa.start_state = @current_state_name
+      end
+
+      def current_state
+        nfa.states[current_state_name]
+      end
+
+      def current_state=(value)
+        @current_state_name = value
       end
 
       def build_from(ast)
         dispatcher.visit ast
-        converted_states = nfa.convert_to_state_machine
-        StateMachine.new converted_states[:start]
+        nfa.end_state = current_state_name
+        converted_states = nfa.to_state_machine
+        StateMachine.new converted_states
       end
 
-      def on_sequence(node)
-        Fiber.new do
-          nfa.states[state][:end] = true
-        end
-      end
+      def on_sequence(node); end
 
       def on_literal(node)
-        traverse(node, next_state)
+        new = nfa.create_state
+        current_state[node.value] = new
+        self.current_state = new
       end
 
       def on_any(node)
-        traverse(node, next_state)
+        new = nfa.create_state
+        current_state[:any] = new
+        self.current_state = new
       end
 
       def on_zero_repeat(node)
-        self.stay_on_current_state = true
+        back_to = current_state_name
+
+        Fiber.new do
+          self.current_state[:empty] = back_to
+          new = nfa.create_state
+          nfa.states[back_to][:empty] = new
+          self.current_state = new
+        end
       end
 
       def on_one_repeat(node)
-        traverse(node.node, next_state)
-        self.stay_on_current_state = true
-      end
-
-      def next_state
-        if stay_on_current_state
-          self.stay_on_current_state = false
-          state
-        else
-          nfa.create_state
-        end
-      end
-
-      def traverse(node, to_state)
-        @state = add_edge(node, to_state)
-      end
-
-      def add_edge(node, to_state)
-        value = case node
-        when AstNode::Literal
-          node.value
-        when AstNode::Any
-          :any
-        end
-        nfa.states[state][value] = to_state
+        dispatcher.visit node.node
+        on_zero_repeat(node)
       end
 
     end

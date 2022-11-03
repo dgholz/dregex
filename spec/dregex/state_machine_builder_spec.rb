@@ -23,13 +23,13 @@ describe Dregex::StateMachine::Builder do
   describe "when pattern has repeats" do
     let(:pattern) { "foo*" }
     it "builds a state machine" do
-      final_state = { :end => true }
-      final_state["o"] = final_state
+      repeated_state = { :empty => { :end => true } }
+      repeated_state["o"] = { :empty => repeated_state }
 
       expect(builder.build_from parser.ast).must_equal Dregex::StateMachine.new(
         {
           "f" => {
-            "o" => final_state,
+            "o" => repeated_state,
           },
         }
       )
@@ -39,8 +39,9 @@ describe Dregex::StateMachine::Builder do
   describe "when pattern has the other kind of repeats" do
     let(:pattern) { "qu+x" }
     it "builds a state machine" do
-      repeated_state = { "x" => { :end => true } }
-      repeated_state["u"] = repeated_state
+      repeated_state = {}
+      repeated_state["u"] = { :empty => repeated_state }
+      repeated_state[:empty] = { "x" => { :end => true } }
 
       expect(builder.build_from parser.ast).must_equal Dregex::StateMachine.new(
         {
