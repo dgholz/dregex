@@ -6,7 +6,7 @@ describe Dregex::Parser do
   let(:parser) { Dregex::Parser.new(tokeniser) }
 
   it "returns an AST" do
-    expect(parser.to_ast).must_equal Dregex::AstNode::Sequence.new(
+    expect(parser.ast).must_equal Dregex::AstNode::Sequence.new(
       Dregex::AstNode::Literal.new("h"),
       Dregex::AstNode::Literal.new("e"),
       Dregex::AstNode::OneRepeat.new(
@@ -29,7 +29,7 @@ describe Dregex::Parser do
     let(:pattern) { "+oops" }
 
     it "raises a syntax error about the pattern" do
-      expect { parser.to_ast }.must_raise Dregex::ParserError, /saw '+' with nothing before it/
+      expect { parser.ast }.must_raise Dregex::ParserError, /saw '+' with nothing before it/
     end
   end
 
@@ -37,7 +37,7 @@ describe Dregex::Parser do
     let(:pattern) { "*its my first day" }
 
     it "raises a syntax error about the pattern" do
-      expect { parser.to_ast }.must_raise Dregex::ParserError, /saw '*' with nothing before it/
+      expect { parser.ast }.must_raise Dregex::ParserError, /saw '*' with nothing before it/
     end
   end
 end

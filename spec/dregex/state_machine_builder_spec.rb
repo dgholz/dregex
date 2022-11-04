@@ -7,7 +7,7 @@ describe Dregex::StateMachine::Builder do
   let(:builder) { Dregex::StateMachine::Builder.new }
 
   it "builds a state machine" do
-    expect(builder.build_from parser.to_ast).must_equal Dregex::StateMachine.new(
+    expect(builder.build_from parser.ast).must_equal Dregex::StateMachine.new(
       {
         "f" => {
           "o" => {
@@ -26,7 +26,7 @@ describe Dregex::StateMachine::Builder do
       final_state = { :end => true }
       final_state["o"] = final_state
 
-      expect(builder.build_from parser.to_ast).must_equal Dregex::StateMachine.new(
+      expect(builder.build_from parser.ast).must_equal Dregex::StateMachine.new(
         {
           "f" => {
             "o" => final_state,
@@ -42,7 +42,7 @@ describe Dregex::StateMachine::Builder do
       repeated_state = { "x" => { :end => true } }
       repeated_state["u"] = repeated_state
 
-      expect(builder.build_from parser.to_ast).must_equal Dregex::StateMachine.new(
+      expect(builder.build_from parser.ast).must_equal Dregex::StateMachine.new(
         {
           "q" => {
             "u" => repeated_state,
@@ -55,7 +55,7 @@ describe Dregex::StateMachine::Builder do
   describe "when pattern has wildcards" do
     let(:pattern) { "b.r" }
     it "builds a state machine" do
-      expect(builder.build_from parser.to_ast).must_equal Dregex::StateMachine.new(
+      expect(builder.build_from parser.ast).must_equal Dregex::StateMachine.new(
         {
           "b" => {
             :any => {

@@ -5,7 +5,7 @@ describe Dregex::StateMachine do
   let(:pattern) { "foo" }
   let(:parser) { Dregex::Parser.new(tokeniser) }
   let(:builder) { Dregex::StateMachine::Builder.new }
-  let(:state_machine) { builder.build_from parser.to_ast }
+  let(:state_machine) { builder.build_from parser.ast }
 
   it "matches plain patterns" do
     expect(state_machine.match("foo")).must_equal true

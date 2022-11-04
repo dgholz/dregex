@@ -10,7 +10,11 @@ module Dregex
       @tokens = tokens
     end
 
-    def to_ast
+    def ast
+      @ast ||= _build_ast
+    end
+
+    def _build_ast
       ast = AstNode::Sequence.new
       tokens.each do |tok|
         case tok
