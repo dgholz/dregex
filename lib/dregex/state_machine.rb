@@ -1,3 +1,5 @@
+require 'dregex/ast_nodes'
+
 module Dregex
   class StateMachine
     attr_reader :state
@@ -35,28 +37,13 @@ module Dregex
       end
 
       def build_from(ast)
-        visit ast
-        state[:end] = true
+        Dregex::AstDispatcher.new(self).visit ast
         state_machine
       end
 
-      def visit(node)
-        case node
-        when AstNode::Sequence
-          on_sequence(node)
-        when AstNode::Literal
-          on_literal(node)
-        when AstNode::Any
-          on_any(node)
-        when AstNode::ZeroRepeat
-          on_zero_repeat(node)
-        when AstNode::OneRepeat
-          on_one_repeat(node)
-        end
-      end
-
-      def on_sequence(node)
-        node.children.each { |node| visit node }
+      def enter_sequence(node); end
+      def exit_sequence(node)
+        state[:end] = true
       end
 
       def on_literal(node)
@@ -67,16 +54,16 @@ module Dregex
         traverse(node, next_state)
       end
 
-      def on_zero_repeat(node)
+      def enter_zero_repeat(node)
         self.stay_on_current_state = true
-        visit(node.node)
       end
+      def exit_zero_repeat(node); end
 
-      def on_one_repeat(node)
+      def enter_one_repeat(node)
         traverse(node.node, next_state)
         self.stay_on_current_state = true
-        visit(node.node)
       end
+      def exit_one_repeat(node); end
 
       def next_state
         if stay_on_current_state
