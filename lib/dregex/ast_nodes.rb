@@ -60,21 +60,21 @@ module Dregex
     def visit(node)
       case node
       when AstNode::Sequence
-        visitor.enter_sequence(node)
+        continuation = visitor.on_sequence(node)
         node.children.each { |node| visit node }
-        visitor.exit_sequence(node)
+        continuation.resume if continuation.respond_to? :resume
       when AstNode::Literal
         visitor.on_literal(node)
       when AstNode::Any
         visitor.on_any(node)
       when AstNode::ZeroRepeat
-        visitor.enter_zero_repeat(node)
+        continuation = visitor.on_zero_repeat(node)
         visit(node.node)
-        visitor.exit_zero_repeat(node)
+        continuation.resume if continuation.respond_to? :resume
       when AstNode::OneRepeat
-        visitor.enter_one_repeat(node)
+        continuation = visitor.on_one_repeat(node)
         visit(node.node)
-        visitor.exit_one_repeat(node)
+        continuation.resume if continuation.respond_to? :resume
       end
     end
   end

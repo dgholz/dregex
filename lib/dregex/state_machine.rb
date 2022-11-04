@@ -1,3 +1,5 @@
+require 'fiber'
+
 require 'dregex/ast_nodes'
 
 module Dregex
@@ -41,9 +43,10 @@ module Dregex
         state_machine
       end
 
-      def enter_sequence(node); end
-      def exit_sequence(node)
-        state[:end] = true
+      def on_sequence(node)
+        Fiber.new do
+          state[:end] = true
+        end
       end
 
       def on_literal(node)
@@ -54,16 +57,14 @@ module Dregex
         traverse(node, next_state)
       end
 
-      def enter_zero_repeat(node)
+      def on_zero_repeat(node)
         self.stay_on_current_state = true
       end
-      def exit_zero_repeat(node); end
 
-      def enter_one_repeat(node)
+      def on_one_repeat(node)
         traverse(node.node, next_state)
         self.stay_on_current_state = true
       end
-      def exit_one_repeat(node); end
 
       def next_state
         if stay_on_current_state
