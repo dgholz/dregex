@@ -2,6 +2,19 @@ require 'slop'
 
 require 'dregex'
 
+module Slop
+  class InvalidChoice < Error; end
+  class ChoiceOption < SymbolOption
+    def call(value)
+      choices = config.fetch(:choose_from, [])
+      unless choices.include? value
+        raise InvalidChoice.new("Invalid choice '#{value}'! Expected one of: »#{choices.join ", "}«")
+      end
+      super
+    end
+  end
+end
+
 module Dregex
   class CLI
     def self.run
@@ -22,6 +35,9 @@ module Dregex
           puts option
           exit
         end
+        option.separator ''
+        option.bool '--show-tokens', 'print pattern tokens before parsing'
+        option.choice '--format', "which way to show internal data (plain). Defaults to 'plain'", default: :plain, choose_from: %w( plain )
       end
 
       if opts.arguments.size == 1
@@ -32,7 +48,11 @@ module Dregex
         puts opts
         exit 1
       end
-      matcher = Dregex::compile pattern
+      matcher = Dregex::compile pattern do |step, val|
+        if opts[:"show_#{step}"]
+          self.send(:"dump_#{step}", val, opts[:format])
+        end
+      end
 
       ARGV.replace opts.arguments
       ARGF.each_line do |line|
@@ -41,6 +61,15 @@ module Dregex
         else
           puts "No match"
         end
+      end
+    end
+
+    def dump_tokens(tokens, format)
+      case format
+      when :plain
+        tokens.each { |t| puts t }
+      else
+        raise ArgumentError, "unknown dump format #{format}!"
       end
     end
   end
