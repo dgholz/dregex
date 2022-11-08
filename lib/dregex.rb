@@ -11,6 +11,9 @@ module Dregex
     ast = Parser.new(tokens).ast.tap do |a|
       yield :ast, a if block_given?
     end
-    StateMachine::Builder.new.build_from ast
+    builder = StateMachine::Builder.new
+    state_machine = builder.build_from ast
+    yield :state_machine, state_machine if block_given?
+    state_machine
   end
 end
