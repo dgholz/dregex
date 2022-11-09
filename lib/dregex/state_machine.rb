@@ -29,23 +29,42 @@ module Dregex
     end
 
     class Builder
-      attr_reader :state_machine, :state
+      attr_reader :state, :states, :state_namer, :dispatcher
       attr_accessor :stay_on_current_state
 
-      def initialize(state={})
-        @state = state
-        @state_machine = StateMachine.new(state)
+      def initialize(state_namer: nil, dispatcher: nil)
+        if state_namer.nil?
+          state_namer = _build_state_namer
+        end
+        if dispatcher.nil?
+          dispatcher = Dregex::AstDispatcher.new(self)
+        end
+        @state_namer = state_namer
+        @state = :start
+        @states = { @state => {} }
+        @dispatcher = dispatcher
         @stay_on_current_state = false
       end
 
+      def _build_state_namer
+        i = 0
+        Enumerator.new do |yielder|
+          while(1)
+            yielder << "S#{i}"
+            i += 1
+          end
+        end
+      end
+
       def build_from(ast)
-        Dregex::AstDispatcher.new(self).visit ast
-        state_machine
+        dispatcher.visit ast
+        converted_states = convert_to_state_machine
+        StateMachine.new converted_states[:start]
       end
 
       def on_sequence(node)
         Fiber.new do
-          state[:end] = true
+          states[state][:end] = true
         end
       end
 
@@ -71,7 +90,9 @@ module Dregex
           self.stay_on_current_state = false
           state
         else
-          Hash.new
+          new = state_namer.next
+          states[new] = Hash.new
+          new
         end
       end
 
@@ -86,8 +107,22 @@ module Dregex
         when AstNode::Any
           :any
         end
-        state[value] = to_state
+        states[state][value] = to_state
       end
+
+      def convert_to_state_machine
+        convert = states.keys.to_h do |state_name|
+          [state_name, states[state_name].dup]
+        end
+        convert.each do |state_name, state|
+          state.each do |transition, next_state_name|
+            next unless convert.has_key? next_state_name
+            state[transition] = convert[next_state_name]
+          end
+        end
+        convert
+      end
+
     end
   end
 end
