@@ -38,6 +38,7 @@ module Dregex
         option.separator ''
         option.bool '--show-ast', 'print AST of pattern before creating state machine'
         option.bool '--show-tokens', 'print pattern tokens before parsing'
+        option.bool '--show-states', 'print state transitions formed from AST'
         option.bool '--show-state-machine', 'print compacted state machine'
         option.choice '--format', "which way to show internal data (plain). Defaults to 'plain'", default: :plain, choose_from: %w( plain )
       end
@@ -79,6 +80,15 @@ module Dregex
       case format
       when :plain
        puts ast
+      else
+        raise ArgumentError, "unknown dump format #{format}!"
+      end
+    end
+
+    def dump_states(states, format)
+      case format
+      when :plain
+       puts states
       else
         raise ArgumentError, "unknown dump format #{format}!"
       end

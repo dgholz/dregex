@@ -13,6 +13,7 @@ module Dregex
     end
     builder = StateMachine::Builder.new
     state_machine = builder.build_from ast
+    yield :states, builder.states if block_given?
     yield :state_machine, state_machine if block_given?
     state_machine
   end
