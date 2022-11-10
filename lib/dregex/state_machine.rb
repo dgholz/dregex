@@ -64,13 +64,13 @@ module Dregex
 
       def on_literal(node)
         new = nfa.create_state
-        current_state[node.value] = new
+        current_state[node.value].add new
         self.current_state = new
       end
 
       def on_any(node)
         new = nfa.create_state
-        current_state[:any] = new
+        current_state[:any].add new
         self.current_state = new
       end
 
@@ -78,9 +78,9 @@ module Dregex
         back_to = current_state_name
 
         Fiber.new do
-          self.current_state[:empty] = back_to
+          self.current_state[:empty].add back_to
           new = nfa.create_state
-          nfa.states[back_to][:empty] = new
+          nfa.states[back_to][:empty].add new
           self.current_state = new
         end
       end
