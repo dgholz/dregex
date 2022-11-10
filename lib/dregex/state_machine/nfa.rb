@@ -6,13 +6,17 @@ module Dregex
   class StateMachine
     class NFA < FiniteAutomata
 
+      def _build_new_state
+        Hash.new { |h,k| h[k] = Set.new }
+      end
+
       def epsilon_transitions
         ets = states.keys.map do |state_name|
+          transition = Set.new
+          transition.add state_name
           e_transition = states[state_name][:empty]
-          [
-            state_name,
-            Set.new([state_name, e_transition].compact)
-          ]
+          transition.merge e_transition if !e_transition.nil?
+          [state_name, transition]
         end.to_h
 
         ets.each do |state_name, e_reachable_states|
@@ -26,6 +30,22 @@ module Dregex
           end
         end
         ets
+      end
+
+      def to_state_machine
+        convert = states.transform_values do |state|
+          state.clone
+        end
+
+        convert.each do |state_name, state|
+          state.each do |transition, next_states|
+            next_state_name = next_states.to_a.first
+            state[transition] = convert[next_state_name]
+          end
+        end
+
+        convert[end_state][:end] = true
+        convert[start_state]
       end
 
     end

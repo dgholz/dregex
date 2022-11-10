@@ -32,10 +32,10 @@ describe Dregex::StateMachine::NFA do
     second_state = nfa.states[second]
     third_state = nfa.states[third]
 
-    first_state["a"] = second
-    second_state["b"] = first
-    first_state["c"] = third
-    second_state["c"] = third
+    first_state["a"].add second
+    second_state["b"].add first
+    first_state["c"].add third
+    second_state["c"].add third
 
     nfa.start_state = first
     nfa.end_state = third
