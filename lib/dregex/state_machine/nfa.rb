@@ -33,19 +33,47 @@ module Dregex
       end
 
       def to_state_machine
-        convert = states.transform_values do |state|
-          state.clone
-        end
+        # use powerset construction to convert NFA to DFA
+        # a powerset state maps to multiple NFA states
+        # and has all the transitions of its component states
+        dfa = DFA.new
+        powerset_to_dfa_state = Hash.new { |h,k| h[k] = dfa.create_state }
 
-        convert.each do |state_name, state|
-          state.each do |transition, next_states|
-            next_state_name = next_states.to_a.first
-            state[transition] = convert[next_state_name]
+        e_reachable = epsilon_transitions
+        start = epsilon_transitions[start_state]
+        to_visit = [ start ]
+        dfa.start_state = powerset_to_dfa_state[start]
+
+        seen = Set.new
+        while ! to_visit.empty?
+          powerset_state = to_visit.shift
+          seen.add powerset_state
+
+          # make a regular state for the powerset state
+          # check all transitions from states in the powerset state and group by transition
+          regular_state = Hash.new { |h,k| h[k] = Set.new }
+          powerset_state.each do |nfa_state_name|
+            nfa_state = states[nfa_state_name]
+            nfa_state.keys.each do |transition|
+              next if transition == :empty
+              nfa_state[transition].each do |reachable_state|
+                regular_state[transition].merge e_reachable[reachable_state]
+              end
+            end
           end
+
+          # now make DFA states for each group of transitioned states
+          dfa_state = dfa.states[powerset_to_dfa_state[powerset_state]]
+          dfa_state.merge! regular_state.transform_values { |v| powerset_to_dfa_state[v] }
+
+          to_visit.push *(regular_state.values.to_set - seen)
         end
 
-        convert.values_at(*end_states.to_a).each { |s| s[:end] = true }
-        convert[start_state]
+        powerset_to_dfa_state.each do |powerstates_of, dfa_state_name|
+          next unless powerstates_of.intersect? end_states
+          dfa.end_states.add dfa_state_name
+        end
+        dfa.to_state_machine
       end
 
     end
