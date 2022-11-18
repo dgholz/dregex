@@ -38,7 +38,7 @@ describe Dregex::StateMachine::DFA do
     second_state["c"] = third
 
     dfa.start_state = first
-    dfa.end_state = third
+    dfa.end_states.add third
 
     state0 = {}
     state1 = {}
