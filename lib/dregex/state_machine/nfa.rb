@@ -44,7 +44,7 @@ module Dregex
           end
         end
 
-        convert[end_state][:end] = true
+        convert.values_at(*end_states.to_a).each { |s| s[:end] = true }
         convert[start_state]
       end
 

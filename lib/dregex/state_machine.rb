@@ -55,7 +55,7 @@ module Dregex
 
       def build_from(ast)
         dispatcher.visit ast
-        nfa.end_state = current_state_name
+        nfa.end_states.add current_state_name
         converted_states = nfa.to_state_machine
         StateMachine.new converted_states
       end

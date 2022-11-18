@@ -1,15 +1,17 @@
+require 'set'
+
 module Dregex
   class StateMachine
     class FiniteAutomata
 
       attr_reader :states, :state_namer
-      attr_accessor :start_state, :end_state
+      attr_accessor :start_state, :end_states
       def initialize(state_namer: nil)
         if state_namer.nil?
           state_namer = _build_state_namer
         end
         @start_state = nil
-        @end_state = nil
+        @end_states = Set.new
         @state_namer = state_namer
         @states = {}
       end
@@ -49,7 +51,7 @@ module Dregex
           end
         end
 
-        convert[end_state][:end] = true
+        convert.values_at(*end_states.to_a).each { |s| s[:end] = true }
         convert[start_state]
       end
 
