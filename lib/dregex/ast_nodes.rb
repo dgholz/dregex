@@ -50,4 +50,32 @@ module Dregex
     end
 
   end
+
+  class AstDispatcher
+    attr_reader :visitor
+    def initialize(visitor)
+      @visitor = visitor
+    end
+
+    def visit(node)
+      case node
+      when AstNode::Sequence
+        continuation = visitor.on_sequence(node)
+        node.children.each { |node| visit node }
+        continuation.resume if continuation.respond_to? :resume
+      when AstNode::Literal
+        visitor.on_literal(node)
+      when AstNode::Any
+        visitor.on_any(node)
+      when AstNode::ZeroRepeat
+        continuation = visitor.on_zero_repeat(node)
+        visit(node.node)
+        continuation.resume if continuation.respond_to? :resume
+      when AstNode::OneRepeat
+        continuation = visitor.on_one_repeat(node)
+        visit(node.node)
+        continuation.resume if continuation.respond_to? :resume
+      end
+    end
+  end
 end
