@@ -23,7 +23,7 @@ describe Dregex::StateMachine do
 
   describe "patterns with repeats" do
     let(:pattern) { "baz*" }
-    xit "matches patterns with repeats" do
+    it "matches patterns with repeats" do
       expect(state_machine.match("foo")).must_equal false
       expect(state_machine.match("ba")).must_equal true
       expect(state_machine.match("baz")).must_equal true
@@ -34,7 +34,7 @@ describe Dregex::StateMachine do
 
   describe "patterns with the other kind of repeats" do
     let(:pattern) { "qu+x" }
-    xit "matches patterns with repeats" do
+    it "matches patterns with repeats" do
       expect(state_machine.match("qx")).must_equal false
       expect(state_machine.match("qux")).must_equal true
       expect(state_machine.match("quux")).must_equal true
